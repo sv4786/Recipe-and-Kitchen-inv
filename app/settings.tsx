@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
+import { router } from 'expo-router';
 import {
   createAndShareBackup,
   pickAndValidateBackup,
@@ -98,6 +99,7 @@ export default function SettingsScreen() {
       style={styles.screen}
       contentContainerStyle={styles.content}
     >
+      <Text style={styles.back} onPress={() => router.back()}>‹ Back</Text>
       <Text style={styles.title}>Settings & backup</Text>
       <Text style={styles.subtitle}>
         Your household data stays on this device. Make a backup before changing
