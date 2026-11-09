@@ -1,10 +1,301 @@
-import { useCallback,useState } from 'react';
+import { useCallback, useState } from 'react';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { Alert,Pressable,ScrollView,StyleSheet,Text,TextInput,View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
-import { changeStock,listInventory,saveInventory } from '@/database/storage';
+import {
+  changeStock,
+  listInventory,
+  saveInventory,
+} from '@/database/storage';
 import { getLowStockItems } from '@/domain/kitchen';
-import { colors,radii,spacing,typography } from '@/theme/tokens';
+import { colors, radii, spacing, typography } from '@/theme/tokens';
 
-export default function InventoryScreen(){const db=useSQLiteContext();const [items,setItems]=useState<Awaited<ReturnType<typeof listInventory>>>([]);const [name,setName]=useState('');const [quantity,setQuantity]=useState('1');const [minimum,setMinimum]=useState('1');const [unit,setUnit]=useState('item');const refresh=useCallback(()=>{listInventory(db).then(setItems).catch(()=>undefined);},[db]);useFocusEffect(useCallback(()=>{refresh();},[refresh]));const low=getLowStockItems(items.map(x=>({id:x.id,name:x.name,quantity:x.quantity,minimumQuantity:x.minimum_quantity,unit:x.unit_code,category:x.category})));async function save(){try{await saveInventory(db,{name,quantity:Number(quantity),minimum:Number(minimum),unit});setName('');refresh();}catch(e){Alert.alert('Could not save ingredient',e instanceof Error?e.message:'Please try again.');}}return <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled"><Text style={styles.title}>Kitchen inventory</Text><Text style={styles.subtitle}>Keep track of what is in the pantry, fridge and freezer.</Text><View style={styles.form}><Text style={styles.heading}>Add or update ingredient</Text><TextInput accessibilityLabel="Ingredient name" placeholder="Ingredient name" value={name} onChangeText={setName} style={styles.input}/><View style={styles.row}><TextInput accessibilityLabel="Current quantity" placeholder="Current" keyboardType="decimal-pad" value={quantity} onChangeText={setQuantity} style={[styles.input,styles.half]}/><TextInput accessibilityLabel="Minimum quantity" placeholder="Minimum" keyboardType="decimal-pad" value={minimum} onChangeText={setMinimum} style={[styles.input,styles.half]}/></View><TextInput accessibilityLabel="Unit" placeholder="Unit (g, kg, ml, item)" value={unit} onChangeText={setUnit} style={styles.input}/><Pressable accessibilityRole="button" onPress={save} style={styles.button}><Text style={styles.buttonText}>Save ingredient</Text></Pressable></View><Text style={styles.section}>Needs restocking · {low.length}</Text>{low.map(x=><View key={x.id} style={styles.low}><Text style={styles.name}>{x.name}</Text><Text style={styles.lowText}>Buy {x.neededQuantity} {x.unit} to reach minimum stock</Text></View>)}<Text style={styles.section}>All ingredients · {items.length}</Text>{items.length===0?<Text style={styles.copy}>Your pantry is waiting for its first ingredient.</Text>:items.map(x=><View key={x.id} style={styles.card}><View style={styles.row}><Text style={styles.name}>{x.name}</Text><Text style={styles.meta}>{x.quantity} {x.unit_code}</Text></View><Text style={styles.copy}>Minimum {x.minimum_quantity} {x.unit_code}</Text><View style={styles.row}><Pressable accessibilityRole="button" onPress={async()=>{await changeStock(db,x.id,-1);refresh();}} style={styles.adjust}><Text style={styles.adjustText}>− 1</Text></Pressable><Pressable accessibilityRole="button" onPress={async()=>{await changeStock(db,x.id,1);refresh();}} style={styles.adjust}><Text style={styles.adjustText}>+ 1</Text></Pressable></View></View>)}</ScrollView>;}
-const styles=StyleSheet.create({screen:{flex:1,backgroundColor:colors.background},content:{padding:spacing.lg,paddingBottom:40,gap:spacing.md},title:{color:colors.text,fontSize:typography.title,fontWeight:'800'},subtitle:{color:colors.muted,lineHeight:22},form:{backgroundColor:colors.surface,borderRadius:radii.lg,padding:spacing.md,gap:spacing.sm},heading:{color:colors.text,fontSize:16,fontWeight:'700'},input:{backgroundColor:colors.background,borderWidth:1,borderColor:colors.border,borderRadius:radii.sm,padding:13,color:colors.text,flex:1},row:{flexDirection:'row',gap:spacing.sm,alignItems:'center'},half:{minWidth:0},button:{backgroundColor:colors.primary,padding:15,borderRadius:radii.sm,alignItems:'center'},buttonText:{color:'#FFFFFF',fontWeight:'700'},section:{color:colors.text,fontSize:17,fontWeight:'800',marginTop:spacing.sm},low:{backgroundColor:'#F8EBDD',borderRadius:radii.md,padding:spacing.md},lowText:{color:colors.warning,marginTop:4},card:{backgroundColor:colors.surface,borderRadius:radii.md,padding:spacing.md,gap:8},name:{color:colors.text,fontWeight:'700',fontSize:16},meta:{color:colors.primary,fontWeight:'700'},copy:{color:colors.muted,fontSize:12},adjust:{backgroundColor:colors.secondary,paddingVertical:9,paddingHorizontal:18,borderRadius:radii.pill},adjustText:{color:colors.primary,fontWeight:'700'}});
+export default function InventoryScreen() {
+  const db = useSQLiteContext();
+  const [items, setItems] = useState<Awaited<ReturnType<typeof listInventory>>>([]);
+  const [name, setName] = useState('');
+  const [quantity, setQuantity] = useState('1');
+  const [minimum, setMinimum] = useState('1');
+  const [unit, setUnit] = useState('item');
+
+  const refresh = useCallback(() => {
+    listInventory(db)
+      .then(setItems)
+      .catch(() => undefined);
+  }, [db]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
+
+  const lowStockItems = getLowStockItems(
+    items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      minimumQuantity: item.minimum_quantity,
+      unit: item.unit_code,
+      category: item.category,
+    })),
+  );
+
+  async function saveIngredient() {
+    try {
+      await saveInventory(db, {
+        name,
+        quantity: Number(quantity),
+        minimum: Number(minimum),
+        unit,
+      });
+
+      setName('');
+      refresh();
+    } catch (error) {
+      Alert.alert(
+        'Could not save ingredient',
+        error instanceof Error ? error.message : 'Please try again.',
+      );
+    }
+  }
+
+  async function adjustStock(inventoryId: string, delta: number) {
+    try {
+      await changeStock(db, inventoryId, delta);
+      refresh();
+    } catch (error) {
+      Alert.alert(
+        'Could not update stock',
+        error instanceof Error ? error.message : 'Please try again.',
+      );
+    }
+  }
+
+  return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text style={styles.title}>Kitchen inventory</Text>
+      <Text style={styles.subtitle}>
+        Keep track of what is in the pantry, fridge and freezer.
+      </Text>
+
+      <View style={styles.form}>
+        <Text style={styles.heading}>Add or update ingredient</Text>
+
+        <TextInput
+          accessibilityLabel="Ingredient name"
+          placeholder="Ingredient name"
+          value={name}
+          onChangeText={setName}
+          style={styles.input}
+        />
+
+        <View style={styles.row}>
+          <TextInput
+            accessibilityLabel="Current quantity"
+            placeholder="Current"
+            keyboardType="decimal-pad"
+            value={quantity}
+            onChangeText={setQuantity}
+            style={[styles.input, styles.half]}
+          />
+          <TextInput
+            accessibilityLabel="Minimum quantity"
+            placeholder="Minimum"
+            keyboardType="decimal-pad"
+            value={minimum}
+            onChangeText={setMinimum}
+            style={[styles.input, styles.half]}
+          />
+        </View>
+
+        <TextInput
+          accessibilityLabel="Unit"
+          placeholder="Unit (g, kg, ml, item)"
+          value={unit}
+          onChangeText={setUnit}
+          style={styles.input}
+        />
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={saveIngredient}
+          style={styles.button}
+        >
+          <Text style={styles.buttonText}>Save ingredient</Text>
+        </Pressable>
+      </View>
+
+      <Text style={styles.section}>
+        Needs restocking · {lowStockItems.length}
+      </Text>
+
+      {lowStockItems.map((item) => (
+        <View key={item.id} style={styles.low}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.lowText}>
+            Buy {item.neededQuantity} {item.unit} to reach minimum stock
+          </Text>
+        </View>
+      ))}
+
+      <Text style={styles.section}>All ingredients · {items.length}</Text>
+
+      {items.length === 0 ? (
+        <Text style={styles.copy}>
+          Your pantry is waiting for its first ingredient.
+        </Text>
+      ) : (
+        items.map((item) => (
+          <View key={item.id} style={styles.card}>
+            <View style={styles.row}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.meta}>
+                {item.quantity} {item.unit_code}
+              </Text>
+            </View>
+
+            <Text style={styles.copy}>
+              Minimum {item.minimum_quantity} {item.unit_code}
+            </Text>
+
+            <View style={styles.row}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Decrease ${item.name} stock by one`}
+                onPress={() => adjustStock(item.id, -1)}
+                style={styles.adjust}
+              >
+                <Text style={styles.adjustText}>− 1</Text>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Increase ${item.name} stock by one`}
+                onPress={() => adjustStock(item.id, 1)}
+                style={styles.adjust}
+              >
+                <Text style={styles.adjustText}>+ 1</Text>
+              </Pressable>
+            </View>
+          </View>
+        ))
+      )}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    padding: spacing.lg,
+    paddingBottom: 40,
+    gap: spacing.md,
+  },
+  title: {
+    color: colors.text,
+    fontSize: typography.title,
+    fontWeight: '800',
+  },
+  subtitle: {
+    color: colors.muted,
+    lineHeight: 22,
+  },
+  form: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  heading: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  input: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.sm,
+    padding: 13,
+    color: colors.text,
+    flex: 1,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  half: {
+    minWidth: 0,
+  },
+  button: {
+    backgroundColor: colors.primary,
+    padding: 15,
+    borderRadius: radii.sm,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  section: {
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: '800',
+    marginTop: spacing.sm,
+  },
+  low: {
+    backgroundColor: '#F8EBDD',
+    borderRadius: radii.md,
+    padding: spacing.md,
+  },
+  lowText: {
+    color: colors.warning,
+    marginTop: 4,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    gap: 8,
+  },
+  name: {
+    color: colors.text,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  meta: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  copy: {
+    color: colors.muted,
+    fontSize: 12,
+  },
+  adjust: {
+    backgroundColor: colors.secondary,
+    paddingVertical: 9,
+    paddingHorizontal: 18,
+    borderRadius: radii.pill,
+  },
+  adjustText: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
+});
