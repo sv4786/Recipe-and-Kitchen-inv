@@ -2,18 +2,29 @@
 
 An Android-only household recipe book and kitchen inventory. The app is offline-first and stores data in SQLite on the device. No login, backend, cloud sync, or paid API is required.
 
-## Included in this milestone
+## Implemented
 
-- Expo Router app shell with Home, Recipes, Inventory, and Shopping tabs.
-- Local SQLite schema with versioned initialization and foreign-key enforcement.
-- Recipe persistence/search data layer and recipe ingredient catalogue.
-- Kitchen stock balances, minimum stock thresholds, and stock adjustments.
-- Automatic shopping needs derived from inventory at read time, plus independent manual shopping items.
-- Pure functions for low-stock calculations, serving scaling, and safe unit conversions.
+- Create and search family recipes by title or ingredient.
+- Save ingredient quantities and ordered cooking instructions.
+- Open recipe details and scale a cooking session to a chosen serving count.
+- Preview recipe ingredient deductions before cooking.
+- Require explicit confirmation before stock changes; cancelling does not deduct stock.
+- Deduct no more than available stock, never allow negative inventory, and protect cooking events against duplicate application.
+- Track ingredient stock, minimum quantities and stock adjustments.
+- Calculate automatic shopping needs from live inventory state without persisting duplicate generated rows.
+- Add manual shopping items independently of inventory.
+- Record the actual quantity purchased and recalculate the remaining shortfall.
+- Review chronological cooking history.
+- Create and share a local JSON backup; validate a selected backup before restoring it.
+- Keep a pre-restore safety copy on the device.
+- Persist data in versioned SQLite migrations with foreign-key enforcement.
+
+## Requirements
+
+- Node.js 22.13 or newer.
+- Android Studio / Android SDK for local Android builds.
 
 ## Setup (Windows CMD)
-
-Requires Node.js 22.13+ and Android Studio / Android SDK.
 
 ```cmd
 git clone https://github.com/sv4786/Recipe-and-Kitchen-inv.git
@@ -37,8 +48,14 @@ npx expo-doctor
 npx expo export --platform android
 ```
 
-All core data is local. Backup/restore is a planned milestone, so do not uninstall or clear app storage before backup support is implemented.
+The repository's test files cover low-stock boundaries, serving scaling, compatible unit conversions, cooking deduction previews, and backup validation. Run the commands above locally before relying on a release build.
 
-## Remaining milestones
+## Backup and privacy
 
-Recipe editing/detail screens, inventory purchase flow, confirmed cooking deductions and history, image storage, and validated backup/restore are not yet complete.
+All core data stays in the app's local SQLite database. Use **Home → Backup & settings** to export a JSON backup before changing phones or reinstalling. Restore validates the selected file and saves a local safety copy before replacing the current data. Keep exported backups somewhere private.
+
+## Current limitations
+
+- Recipe photos, recipe editing/deletion, ingredient categories and expiry reminders are not included yet.
+- Backup files currently contain structured recipe and kitchen data; no photo files are included.
+- Backup restore and Android installation still need hands-on device verification.
