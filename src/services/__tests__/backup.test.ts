@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 import {validateBackupPayload} from '../backup';
 const emptyTables:Record<string,unknown>={categories:[],ingredients:[],recipes:[],recipe_ingredients:[],recipe_steps:[],inventory:[],shopping_items:[],cooking_history:[],cooking_deductions:[]};
 const backup=(tables:Record<string,unknown>=emptyTables)=>({format:'recipe-kitchen-backup',version:1,createdAt:'2026-11-09T00:00:00.000Z',tables});
