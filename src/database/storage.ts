@@ -312,6 +312,7 @@ export async function saveInventory(
 
   if (
     !name ||
+    !input.unit.trim() ||
     ![input.quantity, input.minimum].every(Number.isFinite) ||
     input.quantity < 0 ||
     input.minimum < 0
@@ -350,7 +351,7 @@ export async function saveInventory(
       makeId(),
       ingredient.id,
       input.quantity,
-      input.unit,
+      input.unit.trim(),
       input.minimum,
     );
   });
