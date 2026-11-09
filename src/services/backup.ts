@@ -56,7 +56,7 @@ export async function createAndShareBackup(db:SQLiteDatabase):Promise<void>{
 }
 
 export async function pickAndValidateBackup():Promise<ValidatedBackup|null>{
-  const result=await DocumentPicker.getDocumentAsync({type:['application/json','.json'],copyToCacheDirectory:true});
+  const result=await DocumentPicker.getDocumentAsync({type:'application/json',copyToCacheDirectory:true});
   if(result.canceled)return null;
   const asset=result.assets[0];
   const text=await FileSystem.readAsStringAsync(asset.uri,{encoding:FileSystem.EncodingType.UTF8});
