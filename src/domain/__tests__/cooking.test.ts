@@ -61,6 +61,20 @@ describe('cooking deduction preview', () => {
     });
   });
 
+  it('shares available stock across repeated ingredient rows', () => {
+    const firstLine = buildCookingLine({
+      ...trackedIngredient,
+      availableQuantity: 300,
+    });
+    const secondLine = buildCookingLine({
+      ...trackedIngredient,
+      availableQuantity: 300 - firstLine.deductQuantity,
+    });
+
+    expect(firstLine.deductQuantity + secondLine.deductQuantity).toBe(300);
+    expect(secondLine.shortage).toBe(100);
+  });
+
   it('never creates a negative stock deduction', () => {
     expect(
       buildCookingLine({
