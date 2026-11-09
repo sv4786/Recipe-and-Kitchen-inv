@@ -1,5 +1,5 @@
 import type {SQLiteDatabase} from 'expo-sqlite';
-import {convertCompatibleQuantity} from '@/domain/kitchen';
+import {buildCookingLine} from '@/domain/cooking';
 
 export type CookingLine={ingredientId:string;name:string;requestedQuantity:number;recipeUnit:string;inventoryId:string|null;availableQuantity:number|null;inventoryUnit:string|null;deductQuantity:number;shortage:number;status:'ready'|'shortage'|'untracked'|'incompatible'};
 export type CookingPreview={recipeId:string;recipeTitle:string;servings:number;lines:CookingLine[]};
@@ -11,7 +11,7 @@ export async function previewCooking(db:SQLiteDatabase,recipeId:string,servings:
   if(!recipe)throw new Error('Recipe was not found.');
   const rows=await db.getAllAsync<{ingredient_id:string;name:string;quantity:number;unit_code:string;inventory_id:string|null;available:number|null;inventory_unit:string|null}>(`SELECT i.id ingredient_id,i.name,ri.quantity,ri.unit_code,v.id inventory_id,v.quantity available,v.unit_code inventory_unit FROM recipe_ingredients ri JOIN ingredients i ON i.id=ri.ingredient_id LEFT JOIN inventory v ON v.ingredient_id=i.id WHERE ri.recipe_id=? ORDER BY ri.sort_order`,recipeId);
   const factor=servings/recipe.default_servings;
-  const lines:CookingLine[]=rows.map(row=>{const requestedQuantity=row.quantity*factor;if(!row.inventory_id||row.available===null||!row.inventory_unit)return {ingredientId:row.ingredient_id,name:row.name,requestedQuantity,recipeUnit:row.unit_code,inventoryId:null,availableQuantity:null,inventoryUnit:null,deductQuantity:0,shortage:0,status:'untracked'};const converted=convertCompatibleQuantity(requestedQuantity,row.unit_code,row.inventory_unit);if(converted===null)return {ingredientId:row.ingredient_id,name:row.name,requestedQuantity,recipeUnit:row.unit_code,inventoryId:row.inventory_id,availableQuantity:row.available,inventoryUnit:row.inventory_unit,deductQuantity:0,shortage:0,status:'incompatible'};const deductQuantity=Math.min(row.available,converted);const shortage=Math.max(0,converted-row.available);return {ingredientId:row.ingredient_id,name:row.name,requestedQuantity,recipeUnit:row.unit_code,inventoryId:row.inventory_id,availableQuantity:row.available,inventoryUnit:row.inventory_unit,deductQuantity,shortage,status:shortage>0?'shortage':'ready'};});
+  const lines:CookingLine[]=rows.map(row=>buildCookingLine({ingredientId:row.ingredient_id,name:row.name,requestedQuantity:row.quantity*factor,recipeUnit:row.unit_code,inventoryId:row.inventory_id,availableQuantity:row.available,inventoryUnit:row.inventory_unit}));
   return {recipeId,recipeTitle:recipe.title,servings,lines};
 }
 
