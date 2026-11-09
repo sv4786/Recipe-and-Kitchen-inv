@@ -26,7 +26,7 @@ export async function confirmCooking(db:SQLiteDatabase,eventId:string,recipeId:s
     preview=await previewCooking(db,recipeId,servings);
     historyId=makeId();
     await db.runAsync('INSERT INTO cooking_history(id,event_id,recipe_id,recipe_title,servings) VALUES(?,?,?,?,?)',historyId,eventId,recipeId,preview.recipeTitle,servings);
-    for(const line of preview.lines){if(!line.inventoryId||line.status==='incompatible'||line.deductQuantity<=0)continue;await db.runAsync('UPDATE inventory SET quantity=MAX(0,quantity-?),updated_at=CURRENT_TIMESTAMP WHERE id=?',line.deductQuantity,line.inventoryId);await db.runAsync('INSERT INTO cooking_deductions(id,cooking_history_id,ingredient_id,requested_quantity,deducted_quantity,unit_code) VALUES(?,?,?,?,?,?)',makeId(),historyId,line.ingredientId,line.requestedQuantity,line.deductQuantity,line.recipeUnit);}
+    for(const line of preview.lines){if(!line.inventoryId||line.status==='incompatible'||line.deductQuantity<=0)continue;await db.runAsync('UPDATE inventory SET quantity=MAX(0,quantity-?),updated_at=CURRENT_TIMESTAMP WHERE id=?',line.deductQuantity,line.inventoryId);await db.runAsync('INSERT INTO cooking_deductions(id,cooking_history_id,ingredient_id,requested_quantity,deducted_quantity,unit_code,requested_unit_code,deducted_unit_code) VALUES(?,?,?,?,?,?,?,?)',makeId(),historyId,line.ingredientId,line.requestedQuantity,line.deductQuantity,line.inventoryUnit,line.recipeUnit,line.inventoryUnit);}
   });
   return {historyId,alreadyApplied,preview};
 }
