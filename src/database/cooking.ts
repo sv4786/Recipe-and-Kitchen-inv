@@ -72,17 +72,33 @@ export async function previewCooking(
   );
 
   const servingFactor = servings / recipe.default_servings;
-  const lines: CookingLine[] = rows.map((row) =>
-    buildCookingLine({
+  const remainingStock = new Map<string, number>();
+
+  const lines: CookingLine[] = rows.map((row) => {
+    const availableQuantity =
+      row.inventory_id && row.available !== null
+        ? remainingStock.get(row.inventory_id) ?? row.available
+        : row.available;
+
+    const line = buildCookingLine({
       ingredientId: row.ingredient_id,
       name: row.name,
       requestedQuantity: row.quantity * servingFactor,
       recipeUnit: row.unit_code,
       inventoryId: row.inventory_id,
-      availableQuantity: row.available,
+      availableQuantity,
       inventoryUnit: row.inventory_unit,
-    }),
-  );
+    });
+
+    if (row.inventory_id && availableQuantity !== null) {
+      remainingStock.set(
+        row.inventory_id,
+        Math.max(0, availableQuantity - line.deductQuantity),
+      );
+    }
+
+    return line;
+  });
 
   return {
     recipeId,
