@@ -37,9 +37,9 @@ npm test
 npx expo start
 ```
 
-Use `a` in the Expo terminal to launch an Android emulator. For a native APK, use an EAS Android build or generate the native project and build with Gradle.
+Use `a` in the Expo terminal to launch an Android emulator. To build a local release APK without an EAS account, run these commands from the project root:
 
-## Verification
+```cmd\nnpx expo prebuild --platform android\ncd android\ngradlew.bat assembleRelease\ncd ..\n```\n\nThe APK is written to `android\\app\\build\\outputs\\apk\\release\\app-release.apk`.\n\n## Verification
 
 ```cmd
 npm test
