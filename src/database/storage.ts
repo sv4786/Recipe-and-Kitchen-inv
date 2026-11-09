@@ -224,7 +224,7 @@ export async function addRecipe(
         recipeId,
         savedIngredient.id,
         ingredient.quantity,
-        ingredient.unit.trim(),
+        ingredient.unit.trim().toLocaleLowerCase(),
         sortOrder,
       );
     }
@@ -351,7 +351,7 @@ export async function saveInventory(
       makeId(),
       ingredient.id,
       input.quantity,
-      input.unit.trim(),
+      input.unit.trim().toLocaleLowerCase(),
       input.minimum,
     );
   });
