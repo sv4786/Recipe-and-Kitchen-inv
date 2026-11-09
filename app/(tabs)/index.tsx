@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { listInventory, searchRecipes } from '@/database/storage';
 import { getLowStockItems } from '@/domain/kitchen';
@@ -56,7 +56,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={styles.screen}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.eyebrow}>YOUR HOME KITCHEN</Text>
       <Text style={styles.title}>Good things start here.</Text>
       <Text style={styles.subtitle}>
