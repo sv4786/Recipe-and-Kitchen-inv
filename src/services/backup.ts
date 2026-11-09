@@ -167,7 +167,7 @@ export function validateBackupPayload(value: unknown): KitchenBackup {
 
       if (
         keys.some((key) => !allowedColumns.includes(key)) ||
-        allowedColumns.some((column) => !Object.hasOwn(record, column))
+        allowedColumns.some((column) => !Object.prototype.hasOwnProperty.call(record, column))
       ) {
         throw new Error(
           `The ${table.name} table has missing or unexpected fields.`,
@@ -362,7 +362,7 @@ export async function restoreValidatedBackup(
     for (const table of TABLES) {
       for (const row of payload.tables[table.name]) {
         const columns = table.columns.filter((column) =>
-          Object.hasOwn(row, column),
+          Object.prototype.hasOwnProperty.call(row, column),
         );
 
         if (columns.length === 0) {
