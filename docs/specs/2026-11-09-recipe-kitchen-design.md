@@ -14,7 +14,7 @@ Recipe & Kitchen helps a household keep recipes and kitchen stock in one simple 
 
 1. Create, edit, browse, search, favourite, and cook saved recipes.
 2. Track ingredients and quantities held in the kitchen.
-3. Generate a shopping list automatically when stock reaches or falls below its configured minimum.
+3. Generate a shopping list automatically when stock falls below its configured minimum.
 4. Let the user add one-off shopping items manually.
 5. Offer a review-and-confirm step before recipe cooking deducts stock.
 6. Keep all core functionality available offline, with data stored on the device.
