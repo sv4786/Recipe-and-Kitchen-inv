@@ -19,7 +19,7 @@ type BackupRow=Record<string,string|number|null>;
 export type KitchenBackup={format:'recipe-kitchen-backup';version:1;createdAt:string;tables:Record<TableName,BackupRow[]>};
 export type ValidatedBackup={payload:KitchenBackup;sourceUri:string};
 
-function assertBackup(value:unknown):KitchenBackup{
+export function validateBackupPayload(value:unknown):KitchenBackup{
   if(!value||typeof value!=='object')throw new Error('This file is not a valid Recipe & Kitchen backup.');
   const data=value as Record<string,unknown>;
   if(data.format!=='recipe-kitchen-backup'||data.version!==1||!data.tables||typeof data.tables!=='object')throw new Error('Unsupported backup format or version.');
@@ -62,11 +62,11 @@ export async function pickAndValidateBackup():Promise<ValidatedBackup|null>{
   const text=await FileSystem.readAsStringAsync(asset.uri,{encoding:FileSystem.EncodingType.UTF8});
   let parsed:unknown;
   try{parsed=JSON.parse(text);}catch{throw new Error('The selected file is not valid JSON.');}
-  return {payload:assertBackup(parsed),sourceUri:asset.uri};
+  return {payload:validateBackupPayload(parsed),sourceUri:asset.uri};
 }
 
 export async function restoreValidatedBackup(db:SQLiteDatabase,backup:ValidatedBackup):Promise<void>{
-  const payload=assertBackup(backup.payload);
+  const payload=validateBackupPayload(backup.payload);
   await writeBackupFile(db); // Preserve a local pre-restore safety copy.
   await db.withTransactionAsync(async()=>{
     for(const table of [...TABLES].reverse())await db.execAsync(`DELETE FROM ${table.name}`);
