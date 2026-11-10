@@ -56,7 +56,10 @@ export default function HomeScreen() {
   );
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+    >
       <Text style={styles.eyebrow}>YOUR HOME KITCHEN</Text>
       <Text style={styles.title}>Good things start here.</Text>
       <Text style={styles.subtitle}>
@@ -110,6 +113,8 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  content: {
     padding: spacing.lg,
     gap: spacing.md,
   },
