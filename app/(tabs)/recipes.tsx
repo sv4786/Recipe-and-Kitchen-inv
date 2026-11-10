@@ -9,7 +9,8 @@ import { IngredientEntry, type IngredientEntryValue } from '@/components/Ingredi
 export default function RecipesScreen() {
   const db = useSQLiteContext();
   const [query, setQuery] = useState('');
-  const [recipes, setRecipes] = useState<Awaited<ReturnType<typeof searchRecipes>>>([]);\n  const [pantryNames, setPantryNames] = useState<string[]>([]);
+  const [recipes, setRecipes] = useState<Awaited<ReturnType<typeof searchRecipes>>>([]);
+  const [pantryNames, setPantryNames] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -27,6 +28,12 @@ export default function RecipesScreen() {
     useCallback(() => {
       refresh();
     }, [refresh]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      listInventory(db).then((items) => setPantryNames(items.map((item) => item.name))).catch(() => undefined);
+    }, [db]),
   );
 
   async function saveRecipe() {
