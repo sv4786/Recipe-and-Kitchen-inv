@@ -93,7 +93,7 @@ export default function HomeScreen() {
           list work out what is running low.
         </Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
