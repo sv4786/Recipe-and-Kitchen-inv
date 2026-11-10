@@ -2,14 +2,14 @@ import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { addRecipe, searchRecipes } from '@/database/storage';
+import { addRecipe, listInventory, searchRecipes } from '@/database/storage';
 import { colors, radii, spacing, typography } from '@/theme/tokens';
 import { IngredientEntry, type IngredientEntryValue } from '@/components/IngredientEntry';
 
 export default function RecipesScreen() {
   const db = useSQLiteContext();
   const [query, setQuery] = useState('');
-  const [recipes, setRecipes] = useState<Awaited<ReturnType<typeof searchRecipes>>>([]);
+  const [recipes, setRecipes] = useState<Awaited<ReturnType<typeof searchRecipes>>>([]);\n  const [pantryNames, setPantryNames] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
