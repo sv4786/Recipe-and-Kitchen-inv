@@ -13,7 +13,7 @@ type IngredientEntryProps = {
   onChange: (value: IngredientEntryValue) => void;
   onRemove?: () => void;
   index?: number;
-  suggestions?: string[];
+  suggestions?: Array<{ name: string; unit: string }>;
 };
 
 export function IngredientEntry({ value, onChange, onRemove, index, suggestions = [] }: IngredientEntryProps) {
@@ -43,9 +43,9 @@ export function IngredientEntry({ value, onChange, onRemove, index, suggestions 
         <View style={styles.suggestionSection}>
           <Text style={styles.unitLabel}>From your pantry</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-            {suggestions.filter((name) => name.toLocaleLowerCase() !== value.name.trim().toLocaleLowerCase()).map((name) => (
-              <Pressable key={name} accessibilityRole="button" onPress={() => update({ name })} style={styles.suggestionChip}>
-                <Text style={styles.suggestionText}>{name}</Text>
+            {suggestions.filter((item) => item.name.toLocaleLowerCase() !== value.name.trim().toLocaleLowerCase()).map((item) => (
+              <Pressable key={item.name} accessibilityRole="button" onPress={() => update({ name: item.name, unit: item.unit })} style={styles.suggestionChip}>
+                <Text style={styles.suggestionText}>{item.name}</Text>
               </Pressable>
             ))}
           </ScrollView>
