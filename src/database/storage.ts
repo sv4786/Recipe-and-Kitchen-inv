@@ -249,6 +249,103 @@ export async function addRecipe(
   return recipeId;
 }
 
+
+export async function updateRecipe(
+  db: SQLiteDatabase,
+  recipeId: string,
+  input: RecipeInput,
+): Promise<void> {
+  const title = input.title.trim();
+
+  if (!recipeId || !title || !Number.isInteger(input.servings) || input.servings < 1) {
+    throw new Error('Enter a recipe name and positive serving count.');
+  }
+
+  await db.withTransactionAsync(async () => {
+    const existingRecipe = await db.getFirstAsync<{ id: string }>(
+      'SELECT id FROM recipes WHERE id = ?',
+      recipeId,
+    );
+
+    if (!existingRecipe) {
+      throw new Error('Recipe could not be found.');
+    }
+
+    await db.runAsync(
+      `UPDATE recipes
+      SET title = ?, description = ?, default_servings = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`,
+      title,
+      input.description?.trim() ?? null,
+      input.servings,
+      recipeId,
+    );
+
+    await db.runAsync('DELETE FROM recipe_ingredients WHERE recipe_id = ?', recipeId);
+    await db.runAsync('DELETE FROM recipe_steps WHERE recipe_id = ?', recipeId);
+
+    for (const [sortOrder, ingredient] of (input.ingredients ?? []).entries()) {
+      const name = ingredient.name.trim();
+
+      if (
+        !name ||
+        !Number.isFinite(ingredient.quantity) ||
+        ingredient.quantity < 0 ||
+        !ingredient.unit.trim()
+      ) {
+        throw new Error('Check each ingredient name, quantity and unit.');
+      }
+
+      await db.runAsync(
+        `INSERT OR IGNORE INTO ingredients (
+          id, name, normalized_name
+        ) VALUES (?, ?, ?)`,
+        makeId(),
+        name,
+        normalizeName(name),
+      );
+
+      const savedIngredient = await db.getFirstAsync<{ id: string }>(
+        'SELECT id FROM ingredients WHERE normalized_name = ?',
+        normalizeName(name),
+      );
+
+      if (!savedIngredient) {
+        throw new Error('Could not save ingredient.');
+      }
+
+      await db.runAsync(
+        `INSERT INTO recipe_ingredients (
+          id, recipe_id, ingredient_id, quantity, unit_code, sort_order
+        ) VALUES (?, ?, ?, ?, ?, ?)`,
+        makeId(),
+        recipeId,
+        savedIngredient.id,
+        ingredient.quantity,
+        ingredient.unit.trim().toLocaleLowerCase(),
+        sortOrder,
+      );
+    }
+
+    for (const [sortOrder, instruction] of (input.steps ?? []).entries()) {
+      if (!instruction.trim()) {
+        continue;
+      }
+
+      await db.runAsync(
+        `INSERT INTO recipe_steps (
+          id, recipe_id, instruction, sort_order
+        ) VALUES (?, ?, ?, ?)`,
+        makeId(),
+        recipeId,
+        instruction.trim(),
+        sortOrder,
+      );
+    }
+  });
+}
+
 export async function searchRecipes(db: SQLiteDatabase, query = '') {
   const searchTerm = `%${query.trim()}%`;
 
