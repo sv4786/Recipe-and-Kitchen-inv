@@ -4,6 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { addRecipe, searchRecipes } from '@/database/storage';
 import { colors, radii, spacing, typography } from '@/theme/tokens';
+import { IngredientEntry, type IngredientEntryValue } from '@/components/IngredientEntry';
 
 export default function RecipesScreen() {
   const db = useSQLiteContext();
@@ -13,7 +14,7 @@ export default function RecipesScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [servings, setServings] = useState('4');
-  const [ingredientLines, setIngredientLines] = useState('');
+  const [ingredientEntries, setIngredientEntries] = useState<IngredientEntryValue[]>([{ name: '', quantity: '', unit: 'item' }]);
   const [stepLines, setStepLines] = useState('');
 
   const refresh = useCallback(() => {
@@ -30,21 +31,23 @@ export default function RecipesScreen() {
 
   async function saveRecipe() {
     try {
-      const ingredients = ingredientLines
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => {
-          const [name, amount, unit] = line
-            .split(',')
-            .map((part) => part.trim());
+      const enteredIngredients = ingredientEntries.filter((entry) =>
+        entry.name.trim() || entry.quantity.trim(),
+      );
 
-          return {
-            name,
-            quantity: Number(amount),
-            unit: unit || 'item',
-          };
-        });
+      if (enteredIngredients.some((entry) =>
+        !entry.name.trim() || !entry.quantity.trim() ||
+        !Number.isFinite(Number(entry.quantity)) || Number(entry.quantity) < 0,
+      )) {
+        Alert.alert('Check ingredients', 'Each ingredient needs a name and a valid quantity.');
+        return;
+      }
+
+      const ingredients = enteredIngredients.map((entry) => ({
+        name: entry.name.trim(),
+        quantity: Number(entry.quantity),
+        unit: entry.unit,
+      }));
 
       const steps = stepLines
         .split('\n')
@@ -62,7 +65,7 @@ export default function RecipesScreen() {
       setTitle('');
       setDescription('');
       setServings('4');
-      setIngredientLines('');
+      setIngredientEntries([{ name: '', quantity: '', unit: 'item' }]);
       setStepLines('');
       setShowForm(false);
       refresh();
@@ -130,27 +133,29 @@ export default function RecipesScreen() {
             style={styles.input}
           />
 
-          <TextInput
-            accessibilityLabel="Servings"
-            placeholder="Servings"
-            keyboardType="number-pad"
-            value={servings}
-            onChangeText={setServings}
-            style={styles.input}
-          />
+          <Text style={styles.fieldLabel}>Servings</Text>
+          <View style={styles.chipRow}>
+            {[1, 2, 3, 4, 6, 8, 10, 12].map((count) => (
+              <Pressable key={count} accessibilityRole="radio" accessibilityState={{ selected: servings === String(count) }} onPress={() => setServings(String(count))} style={[styles.choiceChip, servings === String(count) ? styles.choiceChipSelected : null]}>
+                <Text style={[styles.choiceChipText, servings === String(count) ? styles.choiceChipTextSelected : null]}>{count}</Text>
+              </Pressable>
+            ))}
+          </View>
 
-          <Text style={styles.fieldLabel}>Ingredients, one per line</Text>
-          <Text style={styles.hint}>
-            Format: ingredient, quantity, unit. Example: Flour, 2, cup
-          </Text>
-          <TextInput
-            accessibilityLabel="Recipe ingredients"
-            placeholder={'Flour, 2, cup\nMilk, 250, ml'}
-            multiline
-            value={ingredientLines}
-            onChangeText={setIngredientLines}
-            style={[styles.input, styles.multiline]}
-          />
+          <Text style={styles.fieldLabel}>Ingredients</Text>
+          <Text style={styles.hint}>Add each ingredient separately and choose its measurement.</Text>
+          {ingredientEntries.map((entry, index) => (
+            <IngredientEntry
+              key={index}
+              index={index}
+              value={entry}
+              onChange={(value) => setIngredientEntries((current) => current.map((item, itemIndex) => itemIndex === index ? value : item))}
+              onRemove={ingredientEntries.length > 1 ? () => setIngredientEntries((current) => current.filter((_, itemIndex) => itemIndex !== index)) : undefined}
+            />
+          ))}
+          <Pressable accessibilityRole="button" onPress={() => setIngredientEntries((current) => [...current, { name: '', quantity: '', unit: 'item' }])} style={styles.addIngredient}>
+            <Text style={styles.addIngredientText}>+ Add another ingredient</Text>
+          </Pressable>
 
           <Text style={styles.fieldLabel}>
             Instructions, one step per line
@@ -273,6 +278,13 @@ const styles = StyleSheet.create({
     minHeight: 90,
     textAlignVertical: 'top',
   },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  choiceChip: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background, borderRadius: radii.pill, paddingHorizontal: 14, paddingVertical: 9 },
+  choiceChipSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
+  choiceChipText: { color: colors.text, fontWeight: '700' },
+  choiceChipTextSelected: { color: '#FFFFFF' },
+  addIngredient: { padding: 12, alignItems: 'center', borderWidth: 1, borderStyle: 'dashed', borderColor: colors.primary, borderRadius: radii.md },
+  addIngredientText: { color: colors.primary, fontWeight: '800' },
   empty: {
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
