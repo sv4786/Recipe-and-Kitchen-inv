@@ -183,7 +183,7 @@ export default function ShoppingScreen() {
                 onPress={() =>
                   openPurchaseForm(
                     item.id,
-                    item.neededQuantity,
+                    Math.max(item.neededQuantity, item.minimumQuantity, 1),
                     item.unit,
                   )
                 }
