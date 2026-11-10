@@ -10,7 +10,7 @@ export default function RecipesScreen() {
   const db = useSQLiteContext();
   const [query, setQuery] = useState('');
   const [recipes, setRecipes] = useState<Awaited<ReturnType<typeof searchRecipes>>>([]);
-  const [pantryNames, setPantryNames] = useState<string[]>([]);
+  const [pantryNames, setPantryNames] = useState<Array<{ name: string; unit: string }>>([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -32,7 +32,7 @@ export default function RecipesScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      listInventory(db).then((items) => setPantryNames(items.map((item) => item.name))).catch(() => undefined);
+      listInventory(db).then((items) => setPantryNames(items.map((item) => ({ name: item.name, unit: item.unit_code })))).catch(() => undefined);
     }, [db]),
   );
 
