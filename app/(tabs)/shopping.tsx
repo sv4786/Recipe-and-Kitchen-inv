@@ -131,7 +131,9 @@ export default function ShoppingScreen() {
             <View style={styles.row}>
               <Text style={styles.name}>{item.name}</Text>
               <Text style={styles.meta}>
-                {item.neededQuantity > 0\n                  ? `Need ${item.neededQuantity} ${item.unit}`\n                  : `At minimum · restock ${item.minimumQuantity} ${item.unit}`}
+                {item.neededQuantity > 0
+                  ? `Need ${item.neededQuantity} ${item.unit}`
+                  : `At minimum · restock ${item.minimumQuantity} ${item.unit}`}
               </Text>
             </View>
 
