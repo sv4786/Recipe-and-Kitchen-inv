@@ -32,7 +32,7 @@ export function getLowStockItems<T extends StockLevel>(
       item.minimumQuantity,
     );
 
-    return neededQuantity >= 0 && item.quantity <= item.minimumQuantity
+    return item.minimumQuantity > 0 && item.quantity <= item.minimumQuantity
       ? [{ ...item, neededQuantity }]
       : [];
   });
