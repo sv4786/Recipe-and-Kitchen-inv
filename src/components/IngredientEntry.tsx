@@ -112,7 +112,10 @@ const styles = StyleSheet.create({
     color: colors.text,
     minWidth: 0,
   },
-  suggestionSection: { gap: 6 },\n  suggestionChip: { backgroundColor: colors.sage, borderRadius: radii.pill, paddingHorizontal: 13, paddingVertical: 8 },\n  suggestionText: { color: colors.primary, fontWeight: '700' },\n  quantityRow: {
+  suggestionSection: { gap: 6 },
+  suggestionChip: { backgroundColor: colors.sage, borderRadius: radii.pill, paddingHorizontal: 13, paddingVertical: 8 },
+  suggestionText: { color: colors.primary, fontWeight: '700' },
+  quantityRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
