@@ -49,7 +49,7 @@ export default function InventoryScreen() {
         <Pressable accessibilityRole="button" onPress={saveIngredient} style={styles.button}><Text style={styles.buttonText}>Save ingredient</Text></Pressable>
       </View>
       <Text style={styles.section}>Needs restocking · {lowStockItems.length}</Text>
-      {lowStockItems.map((item) => <View key={item.id} style={styles.low}><Text style={styles.name}>{item.name}</Text><Text style={styles.lowText}>Buy {item.neededQuantity} {item.unit} to reach minimum stock</Text></View>)}
+      {lowStockItems.map((item) => <View key={item.id} style={styles.low}><Text style={styles.name}>{item.name}</Text><Text style={styles.lowText}>{item.neededQuantity > 0 ? `Buy ${item.neededQuantity} ${item.unit} to reach minimum stock` : `At minimum stock · restock ${item.minimumQuantity} ${item.unit}`}</Text></View>)}
       <Text style={styles.section}>All ingredients · {items.length}</Text>
       {items.length === 0 ? <Text style={styles.copy}>Your pantry is waiting for its first ingredient.</Text> : items.map((item) => (
         <View key={item.id} style={styles.card}>
