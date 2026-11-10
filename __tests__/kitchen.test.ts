@@ -16,6 +16,10 @@ describe('automatic shopping list', () => {
     ]);
   });
 
+  it('does not create a restock alert when the minimum is disabled at zero', () => {
+    expect(getLowStockItems([stock(0, 0)])).toEqual([]);
+  });
+
   it('adds an item when stock is below minimum and excludes stock above it', () => {
     expect(getLowStockItems([stock(1, 2), stock(4, 2)])).toEqual([
       { ...stock(1, 2), neededQuantity: 1 },
