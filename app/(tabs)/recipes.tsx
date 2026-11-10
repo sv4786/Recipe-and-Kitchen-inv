@@ -156,6 +156,7 @@ export default function RecipesScreen() {
               key={index}
               index={index}
               value={entry}
+              suggestions={pantryNames}
               onChange={(value) => setIngredientEntries((current) => current.map((item, itemIndex) => itemIndex === index ? value : item))}
               onRemove={ingredientEntries.length > 1 ? () => setIngredientEntries((current) => current.filter((_, itemIndex) => itemIndex !== index)) : undefined}
             />
