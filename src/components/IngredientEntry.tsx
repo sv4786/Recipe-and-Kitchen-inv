@@ -13,9 +13,10 @@ type IngredientEntryProps = {
   onChange: (value: IngredientEntryValue) => void;
   onRemove?: () => void;
   index?: number;
+  suggestions?: string[];
 };
 
-export function IngredientEntry({ value, onChange, onRemove, index }: IngredientEntryProps) {
+export function IngredientEntry({ value, onChange, onRemove, index, suggestions = [] }: IngredientEntryProps) {
   function update(patch: Partial<IngredientEntryValue>) {
     onChange({ ...value, ...patch });
   }
@@ -38,6 +39,18 @@ export function IngredientEntry({ value, onChange, onRemove, index }: Ingredient
         style={styles.input}
         returnKeyType="next"
       />
+      {suggestions.length > 0 ? (
+        <View style={styles.suggestionSection}>
+          <Text style={styles.unitLabel}>From your pantry</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+            {suggestions.filter((name) => name.toLocaleLowerCase() !== value.name.trim().toLocaleLowerCase()).map((name) => (
+              <Pressable key={name} accessibilityRole="button" onPress={() => update({ name })} style={styles.suggestionChip}>
+                <Text style={styles.suggestionText}>{name}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
       <View style={styles.quantityRow}>
         <TextInput
           accessibilityLabel="Ingredient quantity"
@@ -99,7 +112,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     minWidth: 0,
   },
-  quantityRow: {
+  suggestionSection: { gap: 6 },\n  suggestionChip: { backgroundColor: colors.sage, borderRadius: radii.pill, paddingHorizontal: 13, paddingVertical: 8 },\n  suggestionText: { color: colors.primary, fontWeight: '700' },\n  quantityRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
