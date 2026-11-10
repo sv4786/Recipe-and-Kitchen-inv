@@ -160,6 +160,11 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
+  back: {
+    color: colors.primary,
+    fontWeight: '700',
+    fontSize: 15,
+  },
   title: {
     color: colors.text,
     fontSize: typography.title,
